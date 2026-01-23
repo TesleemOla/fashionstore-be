@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Order, OrderStatus } from './order.entity';
@@ -32,10 +32,17 @@ export class OrdersService {
       let total = 0;
 
       for (const itemDto of createOrderDto.items) {
-        const item = await this.itemRepo.findOne({ where: { id: itemDto.itemId } });
+        // Use queryRunner.manager to ensure we are in the transaction
+        const item = await queryRunner.manager.findOne(Item, { where: { id: itemDto.itemId } });
         if (!item) {
           throw new NotFoundException(`Item ${itemDto.itemId} not found`);
         }
+        
+        if (item.stock < itemDto.quantity) {
+          throw new BadRequestException(`Item ${item.title} is out of stock`);
+        }
+        item.stock -= itemDto.quantity;
+        await queryRunner.manager.save(item);
 
         const orderItem = new OrderItem();
         orderItem.item = item;

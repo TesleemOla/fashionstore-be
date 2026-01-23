@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Cart } from './cart.entity';
@@ -38,8 +38,15 @@ export class CartsService {
     const item = await this.itemRepo.findOne({ where: { id: dto.itemId } });
     if (!item) throw new NotFoundException('Item not found');
 
+    if (item.stock < dto.quantity) {
+      throw new BadRequestException('Not enough stock available');
+    }
+
     let cartItem = cart.items.find((ci) => ci.item.id === item.id);
     if (cartItem) {
+      if (cartItem.quantity + dto.quantity > item.stock) {
+        throw new BadRequestException('Not enough stock available');
+      }
       cartItem.quantity += dto.quantity;
     } else {
       cartItem = this.cartItemRepo.create({
