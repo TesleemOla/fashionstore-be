@@ -5,10 +5,19 @@ import * as bcrypt from 'bcrypt';
 import { Response, Request } from 'express';
 import { COOKIE_NAME } from './constants';
 import { LocalAuthGuard } from './local-auth.guard';
+import { IsEmail, IsString, MinLength, IsOptional } from 'class-validator';
+import { JwtGuard } from '../security/jwt.guard';
 
 class RegisterDto {
+  @IsEmail()
   email: string;
+
+  @IsString()
+  @MinLength(6)
   password: string;
+
+  @IsOptional()
+  @IsString()
   name?: string;
 }
 
@@ -48,10 +57,9 @@ export class AuthController {
     return res.json({ message: 'logged out' });
   }
 
+  @UseGuards(JwtGuard)
   @Get('me')
-  async me(@Req() req: Request) {
-    // This endpoint is intentionally simple; in app you'd protect with JWT guard
-    const token = req.cookies && req.cookies[COOKIE_NAME];
-    return { token };
+  async me(@Req() req: any) {
+    return this.usersService.findByIdWithOrders(req.user.sub);
   }
 }

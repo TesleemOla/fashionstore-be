@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Order } from '../order/order.entity';
 
 export type Role = 'user' | 'admin';
 
@@ -18,6 +19,9 @@ export class User {
 
   @Column('simple-array', { default: 'user' })
   roles: Role[];
+
+  @OneToMany(() => Order, (order) => order.user)
+  orders: Order[];
 
   @Column({ type: 'timestamp', nullable: true })
   lastLoginAt?: Date;

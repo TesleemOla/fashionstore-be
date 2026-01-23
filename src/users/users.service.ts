@@ -22,6 +22,13 @@ export class UsersService {
     return this.repo.findOne({ where: { id } });
   }
 
+  async findByIdWithOrders(id: string) {
+    return this.repo.findOne({
+      where: { id },
+      relations: ['orders', 'orders.items', 'orders.items.item'],
+    });
+  }
+
   async findAll() {
     return this.repo.find();
   }

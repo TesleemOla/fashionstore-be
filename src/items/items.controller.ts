@@ -1,4 +1,4 @@
-import { Controller, Get, Post, UseInterceptors, UploadedFile, Body, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, UseInterceptors, UploadedFile, Body, Req, UseGuards, Param, NotFoundException, Query } from '@nestjs/common';
 import { ItemsService } from './items.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { extname } from 'path';
 import { CreateItemDto } from './dto/create-item.dto';
 import { JwtGuard } from '../security/jwt.guard';
-import Multer from 'multer';
+import * as Multer from 'multer';
 import { config as dotenvConfig } from 'dotenv';
 
 dotenvConfig();
@@ -23,14 +23,29 @@ export class ItemsController {
   constructor(private itemsService: ItemsService) {}
 
   @Get()
-  async list() {
-    return this.itemsService.findAll();
+  async list(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+    @Query('search') search?: string,
+    @Query('minPrice') minPrice?: number,
+    @Query('maxPrice') maxPrice?: number,
+  ) {
+    return this.itemsService.findAll(
+      Number(page),
+      Number(limit),
+      search,
+      minPrice ? Number(minPrice) : undefined,
+      maxPrice ? Number(maxPrice) : undefined,
+    );
   }
 
   @Get(':id')
-  async get() {
-    // placeholder
-    return { message: 'implement get by id' };
+  async get(@Param('id') id: string) {
+    const item = await this.itemsService.findOne(id);
+    if (!item) {
+      throw new NotFoundException('Item not found');
+    }
+    return item;
   }
 
   // Protected route example - in production hook JwtGuard to protect
