@@ -80,4 +80,21 @@ export class OrdersService {
       relations: ['items', 'items.item'],
     });
   }
+
+  async updateStatus(id: string, status: OrderStatus) {
+    const order = await this.orderRepo.findOne({ where: { id } });
+    if (!order) throw new NotFoundException('Order not found');
+    order.status = status;
+    return this.orderRepo.save(order);
+  }
+
+  async hasUserPurchasedItem(userId: string, itemId: string): Promise<boolean> {
+    const count = await this.orderRepo.count({
+      where: {
+        user: { id: userId },
+        items: { item: { id: itemId } },
+      },
+    });
+    return count > 0;
+  }
 }

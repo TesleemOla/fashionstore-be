@@ -1,7 +1,10 @@
-import { Controller, Post, Body, UseGuards, Req, Get, Param, NotFoundException } from '@nestjs/common';
+import { Controller, Post, Patch, Body, UseGuards, Req, Get, Param, NotFoundException } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { OrderStatus } from './order.entity';
 import { JwtGuard } from '../security/jwt.guard';
+import { RolesGuard } from '../common/roles.guard';
+import { Roles } from '../common/roles.decorator';
 
 @UseGuards(JwtGuard)
 @Controller('orders')
@@ -26,5 +29,12 @@ export class OrdersController {
     const order = await this.ordersService.findOne(id, userId);
     if (!order) throw new NotFoundException('Order not found');
     return order;
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  @Patch(':id/status')
+  async updateStatus(@Param('id') id: string, @Body('status') status: OrderStatus) {
+    return this.ordersService.updateStatus(id, status);
   }
 }

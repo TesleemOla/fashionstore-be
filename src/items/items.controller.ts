@@ -1,10 +1,11 @@
-import { Controller, Get, Post, UseInterceptors, UploadedFile, Body, Req, UseGuards, Param, NotFoundException, Query } from '@nestjs/common';
+import { Controller, Get, Post, Patch, UseInterceptors, UploadedFile, Body, Req, UseGuards, Param, NotFoundException, Query } from '@nestjs/common';
 import { ItemsService } from './items.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 import { extname } from 'path';
 import { CreateItemDto } from './dto/create-item.dto';
+import { UpdateItemDto } from './dto/update-item.dto';
 import { JwtGuard } from '../security/jwt.guard';
 import * as Multer from 'multer';
 import { config as dotenvConfig } from 'dotenv';
@@ -63,5 +64,13 @@ export class ItemsController {
     const imageUrl = file ? `/${uploadDir}/${file.filename}` : undefined;
     const sellerId = req.user?.sub;
     return this.itemsService.create(body, sellerId, imageUrl);
+  }
+
+  @UseGuards(JwtGuard)
+  @Patch(':id')
+  async update(@Param('id') id: string, @Body() body: UpdateItemDto, @Req() req: any) {
+    const userId = req.user.sub;
+    const isAdmin = req.user.roles?.includes('admin');
+    return this.itemsService.update(id, body, userId, isAdmin);
   }
 }

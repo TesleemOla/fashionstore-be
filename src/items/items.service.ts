@@ -1,8 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Item } from './item.entity';
 import { Repository, ILike, Between, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
 import { CreateItemDto } from './dto/create-item.dto';
+import { UpdateItemDto } from './dto/update-item.dto';
 import { UsersService } from '../users/users.service';
 import { ActivityService } from '../activity/activity.service';
 
@@ -59,5 +60,17 @@ export class ItemsService {
 
   async findOne(id: string) {
     return this.repo.findOne({ where: { id } });
+  }
+
+  async update(id: string, updateDto: UpdateItemDto, userId: string, isAdmin: boolean) {
+    const item = await this.findOne(id);
+    if (!item) throw new NotFoundException('Item not found');
+
+    if (item.seller.id !== userId && !isAdmin) {
+      throw new ForbiddenException('You can only update your own items');
+    }
+
+    Object.assign(item, updateDto);
+    return this.repo.save(item);
   }
 }

@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn, DeleteDateColumn } from 'typeorm';
 import { User } from '../users/user.entity';
+import { Review } from '../reviews/review.entity';
 
 @Entity()
 export class Item {
@@ -23,4 +24,11 @@ export class Item {
 
   @CreateDateColumn()
   createdAt: Date;
+  stock: number;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
+
+  @OneToMany(() => Review, (review) => review.item)
+  reviews: Review[];
 }

@@ -9,6 +9,7 @@ import { ActivityModule } from '../activity/activity.module';
 @Module({
   imports: [TypeOrmModule.forFeature([Item]), UsersModule, ActivityModule],
   providers: [ItemsService],
-  controllers: [ItemsController]
+  controllers: [ItemsController],
+  exports: [ItemsService]
 })
 export class ItemsModule {}

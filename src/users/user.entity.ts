@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, DeleteDateColumn } from 'typeorm';
 import { Order } from '../order/order.entity';
+import { Review } from '../reviews/review.entity';
 
 export type Role = 'user' | 'admin';
 
@@ -31,4 +32,10 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
+
+  @OneToMany(() => Review, (review) => review.user)
+  reviews: Review[];
 }
